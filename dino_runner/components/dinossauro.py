@@ -1,5 +1,5 @@
 import pygame
-from dino_runner.utils.constants import RUNNING, JUMPING, DUCKING
+from dino_runner.utils.constants import RUNNING, JUMPING, DUCKING, SCREEN_WIDTH
 
 X_POS = 0
 Y_POS = 310
@@ -40,6 +40,11 @@ class Dinossauro:
         else:
             self.x_vel = 0  # para de se mover
         
+        if self.dino_rect.x < 0:
+            self.dino_rect.x = 0
+        elif self.dino_rect.x + self.dino_rect.width > SCREEN_WIDTH:
+            self.dino_rect.x = SCREEN_WIDTH - self.dino_rect.width
+
         self.dino_rect.x += self.x_vel  # atualiza a posição X com base na velocidade
         
         if self.dino_run:
