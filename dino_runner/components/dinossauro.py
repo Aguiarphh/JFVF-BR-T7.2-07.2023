@@ -41,7 +41,7 @@ class Dinossauro:
             self.x_vel = 0  # para de se mover
         
         if self.dino_rect.x < 0:
-            self.dino_rect.x = 0
+            self.dino_rect.x = 0   #  limitando o dino de acordo com a largura da tela
         elif self.dino_rect.x + self.dino_rect.width > SCREEN_WIDTH:
             self.dino_rect.x = SCREEN_WIDTH - self.dino_rect.width
 
