@@ -14,6 +14,7 @@ class ObstacleManager:
         
         if len(self.obstacles) == 0:
             option = random.randint(1,3)
+
             if option == 1:
                 self.obstacles.append(Cactus(SMALL_CACTUS[random.randint(0,2)]))
             elif option == 2:
@@ -21,17 +22,25 @@ class ObstacleManager:
                 cactus.rect.y = 300
                 self.obstacles.append(cactus)
             elif option == 3:
-                self.obstacles.append(Bird(BIRD[random.randint(0,1)]))
+                self.obstacles.append(Bird(BIRD[0]))
         
         for obstacle in self.obstacles:
             obstacle.update(game.game_speed, self.obstacles)
             
-            if game.player.dino_rect.colliderect(obstacle.rect):
+            if game.player.dino_rect.colliderect(obstacle.rect) and game.player.invisible == False:
+                if not game.player.has_power_up:
+                    game.heart -= 1
+                    game.player.invisible = True
+                    game.player.invisible_ticke = 60
+                else:
+                    self.obstacles.remove(obstacle)
+            if game.heart == 0:
                 pygame.time.delay(500)
                 game.playing = False
                 game.death_count+=1
                 game.lives -= 1
-                break           
+                break  
+                     
     
     def draw(self, screen):
         for obstacle in self.obstacles:

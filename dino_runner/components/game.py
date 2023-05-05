@@ -2,7 +2,8 @@ import pygame
 
 from dino_runner.components.dinossauro import Dinossauro
 from dino_runner.components.obstacles.obstacle_manager import ObstacleManager
-from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, CLOUD, HEART
+from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, CLOUD, DEFAULT_TYPE, HEART
+from dino_runner.components.power_ups.power_up_manager import PowerUpManager
 
 class Game:
     def __init__(self):
@@ -13,7 +14,6 @@ class Game:
         self.clock = pygame.time.Clock()
         self.playing = False
         self.executing = False
-        self.playing = False
         self.game_speed = 10
         self.x_pos_bg = 0
         self.y_pos_bg = 380
@@ -24,13 +24,13 @@ class Game:
         self.cloud_y2 = 50   # coordenada y da segunda nuvem
         
         self.game_over = False
-        
         self.paused = False
-
         self.lives = 3
+        self.heart = 3
 
         self.player = Dinossauro()
         self.obstacle_manager = ObstacleManager()
+        self.power_up_manager = PowerUpManager()
 
         self.score = 0
         self.death_count = 0
@@ -55,6 +55,7 @@ class Game:
             if self.paused:
                 self.clock.tick(FPS)
                 continue
+
             self.update()
             self.draw()
 
@@ -62,6 +63,8 @@ class Game:
         self.score = 0
         self.game_speed = 10
         self.obstacle_manager.reset_obstacles()
+        self.power_up_manager.reset_power_ups()
+        self.heart = 3
         if self.lives == 0:
             self.game_over = True
 
@@ -76,11 +79,23 @@ class Game:
                 elif event.key == pygame.K_c:
                     self.paused = False
             
+    def add_Heart(self):
+        if self.heart == 3:
+            self.screen.blit(HEART, (10, 10))
+            self.screen.blit(HEART, (40, 10))
+            self.screen.blit(HEART, (70, 10))
+        elif self.heart == 2:
+            self.screen.blit(HEART, (10, 10))
+            self.screen.blit(HEART, (40, 10))
+        elif self.heart == 1:
+            self.screen.blit(HEART, (10, 10))
+
 
     def update(self):
         user_input = pygame.key.get_pressed()
         self.player.update(user_input) #chamando o metodo do player neste caso o dinossauro
         self.obstacle_manager.update(self)
+        self.power_up_manager.update(self)
 
         self.update_score()
         
@@ -97,6 +112,9 @@ class Game:
 
         self.player.draw(self.screen) #chamar o metodo do player
         self.obstacle_manager.draw(self.screen) 
+        self.draw_power_up_time()    
+        self.power_up_manager.draw(self.screen)
+        self.add_Heart()
 
         self.draw_score()
         #pygame.display.update()
@@ -105,14 +123,33 @@ class Game:
     def draw_score(self):
         FONT_STYLE = "freesansbold.ttf"
         font = pygame.font.Font(FONT_STYLE, 22)
-        text = font.render(f"Score: {self.score}", True, (250,0,0))
-        text2 = font.render(f"Lives: {self.lives}", True, (250,0,0))
+        text = font.render(f"Score: {self.score}", True, (0,0,255))
+        text2 = font.render(f"Lives: {self.lives}", True, (0,255,0))
         
         text_rect = text.get_rect()
         text_rect.center = (1000, 50)
         
         self.screen.blit(text, text_rect)
-        self.screen.blit(text2, (970, 100))
+        self.screen.blit(text2, (960, 100))
+
+    def draw_power_up_time(self):
+        if self.player.has_power_up:
+            time_to_show = round((self.player.power_up_time_up - pygame.time.get_ticks())/1000,2)
+            
+            if time_to_show >= 0:
+                FONT_STYLE = "freesansbold.ttf"
+                font = pygame.font.Font(FONT_STYLE, 22)
+                text = font.render(f"{time_to_show}", True, (255,255,0))
+                
+                text_rect = text.get_rect()
+                text_rect.x = 500
+                text_rect.y = 50
+                
+                self.screen.blit(text, text_rect)
+                
+            else:
+                self.player.has_power_up = False
+                self.player.type = DEFAULT_TYPE
 
     def draw_background(self):
         image_width = BG.get_width()
@@ -138,8 +175,12 @@ class Game:
         half_screem_width = SCREEN_WIDTH //2
                 
         FONT_STYLE = "freesansbold.ttf"
-        font = pygame.font.Font(FONT_STYLE, 22)
-        text = font.render("Press any key to start", True, (0,0,0))
+        if self.game_over == False:
+            font = pygame.font.Font(FONT_STYLE, 22)
+            text = font.render("Press any key to start", True, (0,0,0))
+        else:
+            font = pygame.font.Font(FONT_STYLE, 22)
+            text = font.render("Game Over", True, (0,0,0))
         
         text_rect = text.get_rect()
         text_rect.center = (half_screem_width, half_screen_height)

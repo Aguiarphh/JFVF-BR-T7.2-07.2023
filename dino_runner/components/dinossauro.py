@@ -1,14 +1,20 @@
 import pygame
-from dino_runner.utils.constants import RUNNING, JUMPING, DUCKING, SCREEN_WIDTH
+from dino_runner.utils.constants import RUNNING, JUMPING, DUCKING, SCREEN_WIDTH, DEFAULT_TYPE, SHIELD_TYPE, RUNNING_SHIELD, DUCKING_SHIELD,JUMPING_SHIELD, HAMMER_TYPE, RUNNING_HAMMER, DUCKING_HAMMER, JUMPING_HAMMER
+
+RUN_IMG = {DEFAULT_TYPE: RUNNING, SHIELD_TYPE: RUNNING_SHIELD, HAMMER_TYPE: RUNNING_HAMMER}
+DUCK_IMG = {DEFAULT_TYPE: DUCKING, SHIELD_TYPE: DUCKING_SHIELD, HAMMER_TYPE: DUCKING_HAMMER}
+JUMP_IMG = {DEFAULT_TYPE: JUMPING, SHIELD_TYPE: JUMPING_SHIELD, HAMMER_TYPE: JUMPING_HAMMER}
 
 X_POS = 0
 Y_POS = 310
 Y_POS_DUCK = 340
 JUMP_VEL = 8.5
+WALK = 10
 
 class Dinossauro:
     def __init__(self):
-        self.image = RUNNING[0]
+        self.type = DEFAULT_TYPE
+        self.image = RUN_IMG[DEFAULT_TYPE][0]
 
         self.dino_rect = self.image.get_rect()
         self.dino_rect.x = X_POS
@@ -21,7 +27,10 @@ class Dinossauro:
 
         self.jump_vel = JUMP_VEL
 
-        self.x_vel = 0  # inicializa a velocidade do 0
+        self.has_power_up = False
+
+        self.invisible = False
+        self.invisible_ticke = 0
         
     def update(self, user_input):
         if user_input[pygame.K_UP]:
@@ -56,26 +65,39 @@ class Dinossauro:
         
         if self.steps_count > 9:
             self.steps_count = 0
+        
+        if self.invisible_ticke > 0:
+            self.invisible_ticke -= 1
+            self.invisible  = True
+        else:
+            self.invisible = False
     
     def run(self):
-        self.image = RUNNING[self.steps_count//5]
+        #self.image = RUNNING[self.steps_count//5]
+        self.image = RUN_IMG[self.type][self.steps_count//5]
+
         self.dino_rect.y = Y_POS
         self.steps_count += 1
     
     def duck(self):
-        self.image = DUCKING[self.steps_count//5]
+        #self.image = DUCKING[self.steps_count//5]
+        self.image = DUCK_IMG[self.type][self.steps_count//5]
+
         self.dino_rect.y = Y_POS_DUCK
         self.steps_count += 1
     
     def jump(self):
-        self.image = JUMPING
+        #self.image = JUMPING
+        self.image = JUMP_IMG[self.type]
+
         if self.dino_jump:
             self.dino_rect.y -= self.jump_vel*4
             self.jump_vel -= 0.8
-            if self.jump_vel < -JUMP_VEL:
-                self.dino_rect.y = Y_POS
-                self.dino_jump = False
-                self.jump_vel = JUMP_VEL
+
+        if self.jump_vel < -JUMP_VEL:
+            self.dino_rect.y = Y_POS
+            self.dino_jump = False
+            self.jump_vel = JUMP_VEL
     
     def draw(self, screen):
         screen.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
